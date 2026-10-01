@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Capture et analyse des mesures du test de perturbations du LSM6DSOX (Phase 4).
+"""Capture et analyse des mesures du test de perturbations du LSM6DSOX (robot UR3).
 
 Capture (enregistre le flux CSV du Pico pendant N secondes) :
-    python3 outils/test_perturbations.py capture d05_on_r1 --duree 30
+    python3 scripts/perturbations.py capture d050_on_r1 --duree 30
 
 Analyse (compare robot hors tension / sous tension à chaque distance) :
-    python3 outils/test_perturbations.py analyse
+    python3 scripts/perturbations.py analyse
 
 Nom des fichiers : d<distance en mm>_<off|on>_r<répétition>.csv, ex. d050_on_r2.csv
 Aucune dépendance externe : bibliothèque standard Python uniquement.

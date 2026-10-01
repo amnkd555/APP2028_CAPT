@@ -1,5 +1,5 @@
-# Intégration continue : à chaque push / pull request sur GitHub,
-# compile le firmware (Pico 2 W) et lance les tests hôte (C + Python).
+# Intégration continue : à chaque push et pull request, GitHub lance la même vérification
+# que le hook Claude Code (scripts/verifier.sh) : compilation du firmware + tests.
 name: CI
 
 on:
@@ -7,48 +7,22 @@ on:
   pull_request:
 
 jobs:
-  firmware:
+  verification:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Outils de compilation ARM
+      - name: Compilateur ARM
         run: sudo apt-get update && sudo apt-get install -y cmake ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi
 
       - name: SDK Pico 2.2.0
         run: git clone --depth 1 --branch 2.2.0 --recurse-submodules --shallow-submodules https://github.com/raspberrypi/pico-sdk.git "$HOME/pico-sdk"
 
-      - name: Compilation du firmware
-        run: |
-          export PICO_SDK_PATH="$HOME/pico-sdk"
-          cmake -S . -B build -G Ninja
-          cmake --build build
+      - name: Vérification (firmware + tests)
+        run: PICO_SDK_PATH="$HOME/pico-sdk" ./scripts/verifier.sh </dev/null
 
       - name: Fichiers .uf2
         uses: actions/upload-artifact@v4
         with:
           name: firmware
           path: build/*.uf2
-
-  tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Tests unitaires C (bus I2C simulé)
-        run: |
-          mkdir -p tests_hote
-          for test in $(find tests -name 'test_*.c' | sort); do
-            nom=$(basename "$test" .c)
-            sources=$(grep -m1 '^// SOURCES:' "$test" | sed 's|^// SOURCES:||')
-            echo "== $test"
-            cc -std=c11 -Wall -Wextra -Werror -Isrc -Itests/mocks -o "tests_hote/$nom" "$test" $sources -lm
-            "./tests_hote/$nom"
-          done
-
-      - name: Scripts Python
-        run: |
-          for script in outils/*.py; do python3 -m py_compile "$script"; done
-          if find tests -name 'test_*.py' | grep -q .; then
-            python3 -m unittest discover -s tests -p 'test_*.py' -t .
-          fi
