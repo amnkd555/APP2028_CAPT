@@ -1,4 +1,4 @@
-// SOURCES: src/communication/communication_moniteur.c tests/mocks/pico_simule.c
+// SOURCES: src/communication/communication_moniteur.c src/mocks/pico_simule.c
 // Tests de communication_moniteur : détection de l'ouverture du port série
 #include <assert.h>
 #include <stdio.h>

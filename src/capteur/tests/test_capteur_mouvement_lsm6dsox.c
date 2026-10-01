@@ -1,4 +1,4 @@
-// SOURCES: src/capteur/capteur.c src/capteur/capteur_mouvement.c src/capteur/capteur_mouvement_lsm6dsox.c tests/mocks/bus_i2c_simule.c tests/mocks/pico_simule.c
+// SOURCES: src/capteur/capteur.c src/capteur/capteur_mouvement.c src/capteur/capteur_mouvement_lsm6dsox.c src/mocks/bus_i2c_simule.c src/mocks/pico_simule.c
 // Tests de capteur_mouvement_lsm6dsox sur un bus I2C simulé
 #include <assert.h>
 #include <math.h>

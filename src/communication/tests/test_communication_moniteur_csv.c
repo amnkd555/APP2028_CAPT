@@ -1,4 +1,4 @@
-// SOURCES: src/communication/communication_moniteur_csv.c src/communication/communication_moniteur.c src/capteur/capteur_mouvement.c tests/mocks/pico_simule.c
+// SOURCES: src/communication/communication_moniteur_csv.c src/communication/communication_moniteur.c src/capteur/capteur_mouvement.c src/mocks/pico_simule.c
 // Tests de communication_moniteur_csv : format des lignes et compteurs d'erreurs
 #include <assert.h>
 #include <stdio.h>
