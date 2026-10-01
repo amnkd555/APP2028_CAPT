@@ -1,6 +1,30 @@
+# Compilation (fichiers générés, chemins absolus)
 build/
 build_*/
-.cache/
-.DS_Store
+*.uf2
+*.elf
+*.bin
+*.hex
+*.map
+*.o
+
+# Python
 __pycache__/
+*.pyc
+.venv/
+
+# Mesures du test robot (fichiers CSV lourds, regénérables)
 mesures/
+
+# Éditeurs et index
+.cache/
+.vscode/
+.idea/
+
+# Système
+.DS_Store
+*.swp
+
+# Claude Code : réglages personnels et worktrees (copies du dépôt sur d'autres branches)
+.claude/settings.local.json
+.claude/worktrees/
