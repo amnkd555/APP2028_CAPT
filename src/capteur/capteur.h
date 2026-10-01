@@ -22,7 +22,6 @@ typedef struct {
 
 struct capteur {
     const capteur_operations_t *operations;   // implémentation de l'enfant
-    const char *nom;                          // nom lisible, pour les messages
 };
 
 // Vérifie et configure le capteur ; true s'il est prêt à mesurer

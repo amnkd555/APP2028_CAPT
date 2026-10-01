@@ -83,7 +83,6 @@ static const capteur_operations_t operations = {
 void capteur_mouvement_lsm6dsox_creer(capteur_mouvement_lsm6dsox_t *self, const bus_i2c_t *bus, uint8_t adresse) {
     *self = (capteur_mouvement_lsm6dsox_t){0};
     self->parent.parent.operations = &operations;
-    self->parent.parent.nom = "LSM6DSOX";
     self->bus = bus;
     self->adresse = adresse;
 }
