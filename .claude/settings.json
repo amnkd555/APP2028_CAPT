@@ -1,17 +1,36 @@
 {
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/verif_git.sh",
+            "timeout": 30,
+            "statusMessage": "Verification des regles git..."
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Write|Edit",
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/outils/tests.sh",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/verifier.sh",
             "timeout": 300,
-            "statusMessage": "Compilation et tests..."
+            "statusMessage": "Verification (compilation et tests)..."
           }
         ]
       }
     ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/statusline.sh",
+    "padding": 0,
+    "refreshInterval": 10
   }
 }
