@@ -35,12 +35,12 @@ La communication entre le Raspberry Pi Pico 2 W et le capteur LSM6DSOX utilise l
 
 Le module Adafruit intègre déjà les composants nécessaires au capteur (condensateurs, résistances de tirage, régulateur). Seuls quatre fils sont à brancher.
 
-| Broche Capteur | Connexion Raspberry Pi Pico 2 W | Rôle de la broche |
-|---|---|---|
-| VIN | 3V3 (broche 36) | Alimentation électrique du capteur. |
-| GND | GND (broche 38) | Masse commune. |
-| SCL | GP5 (broche 7) – I2C0 SCL | L'horloge commune pour synchroniser les données. |
-| SDA | GP4 (broche 6) – I2C0 SDA | La ligne de transfert des données. |
+| Broche Capteur | Connexion Raspberry Pi Pico 2 W | Fil | Rôle de la broche |
+|---|---|---|---|
+| VIN | 3V3 (broche 36) | rouge | Alimentation électrique du capteur. |
+| GND | GND (broche 38) | noir | Masse commune. |
+| SCL | GP5 (broche 7) – I2C0 SCL | jaune | L'horloge commune pour synchroniser les données. |
+| SDA | GP4 (broche 6) – I2C0 SDA | bleu | La ligne de transfert des données. |
 
 | Broches du module non connectées | Raison |
 |---|---|
@@ -83,7 +83,7 @@ Sur la carte finale, le capteur est soudé directement, sans le module Adafruit.
 | R_pu1 | 10 kΩ | Entre SDA (14) et 3V3 | Résistance de tirage (pull-up) I2C. |
 | R_pu2 | 10 kΩ | Entre SCL (13) et 3V3 | Résistance de tirage (pull-up) I2C. |
 
-Les condensateurs doivent être placés au plus près des broches du capteur. Une seule paire de résistances de tirage suffit pour tout le bus I2C, même lorsque d'autres modules y seront ajoutés.
+Les condensateurs doivent être placés au plus près des broches du capteur. Une seule paire de résistances de tirage suffit pour tout le bus I2C, même lorsque d'autres modules y seront ajoutés. Prendre 4,7 kΩ au lieu de 10 kΩ si les pistes I2C sont longues.
 
 ### 4.3 Modules à ajouter sur la carte finale
 

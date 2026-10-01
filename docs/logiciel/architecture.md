@@ -11,11 +11,11 @@ l'ordinateur par le câble USB.
 
 ```mermaid
 flowchart LR
-    A["✍️ Le code<br/>(dossier src)"] --> B["⚙️ Compilation<br/>(transforme le code<br/>en fichier .uf2)"]
-    B --> C["🔌 Le Pico<br/>(exécute le .uf2)"]
-    C --> D["📐 Le capteur<br/>(mesure le mouvement)"]
+    A["Le code<br/>(dossier src)"] --> B["Compilation<br/>(transforme le code<br/>en fichier .uf2)"]
+    B --> C["Le Pico<br/>(exécute le .uf2)"]
+    C --> D["Le capteur<br/>(mesure le mouvement)"]
     D --> C
-    C --> E["💻 L'ordinateur<br/>(affiche les mesures)"]
+    C --> E["L'ordinateur<br/>(affiche les mesures)"]
 ```
 
 1. On écrit le code dans le dossier `src`.
@@ -38,11 +38,11 @@ ton code (.c)  →  compilation  →  fichier .uf2  →  Pico
 | Dossier | À quoi il sert |
 |---|---|
 | `src/` | **Le code du Pico.** C'est le cœur du projet. |
-| `tests/` | Petits programmes qui **vérifient** que le code fait ce qu'il faut, sans avoir besoin de la carte. |
-| `outils/` | Scripts pour l'ordinateur : enregistrer les mesures, lancer les vérifications. |
+| `scripts/` | Scripts pour l'ordinateur : vérifier le code (`verifier.sh`), enregistrer et analyser les mesures du robot (`perturbations.py`). |
+| `cmake/` | Fichier d'import du SDK Pico (copie officielle, on n'y touche pas). |
 | `build/` | Fichiers fabriqués par la compilation (dont les `.uf2`). On n'y touche pas. |
 
-Dans `src/`, le code est rangé **par rôle**, un dossier par rôle :
+Dans `src/`, le code est rangé **par rôle**, un dossier par rôle. Un sous-dossier `tests/` (pour l'instant dans `capteur/` et `communication/`) contient les petits programmes qui **vérifient** son code sans la carte.
 
 | Dossier | Son rôle | Image |
 |---|---|---|
@@ -120,7 +120,7 @@ Un test est un petit programme qui vérifie un morceau du code **sur l'ordinateu
 Pico. Par exemple : « si le capteur renvoie ces octets-là, est-ce qu'on obtient bien 1 g ? ».
 
 Comme il n'y a pas de vrai capteur sur l'ordinateur, on utilise un **faux capteur**
-(dossier `tests/mocks/`) : un tableau de valeurs qu'on remplit à la main. Le code ne voit pas
+(dossier `src/mocks/`) : un tableau de valeurs qu'on remplit à la main. Le code ne voit pas
 la différence.
 
 ```mermaid
@@ -133,7 +133,7 @@ flowchart LR
     end
 ```
 
-**Vérification automatique** : à chaque modification du code, le script `outils/tests.sh` se lance
+**Vérification automatique** : à chaque modification du code, le script `scripts/verifier.sh` se lance
 tout seul. Il :
 1. vérifie que le code se compile ;
 2. lance tous les tests ;
@@ -158,30 +158,11 @@ Si quelque chose casse, on le sait tout de suite.
 
 | Je veux… | Je fais… |
 |---|---|
-| Compiler | Dans le terminal : `cmake --build build` (ou automatique via `./outils/tests.sh`) |
+| Compiler | Dans le terminal : `cmake --build build` (ou automatique via `./scripts/verifier.sh`) |
 | Mettre le programme sur le Pico | Dans le terminal : `picotool load -f -x build/mesure_capteur.uf2` |
 | Voir les mesures | Serial Monitor de VS Code, port `usbmodem…`, 115200 bauds |
-| Enregistrer des mesures pour le test des perturbations du robot | `python3 outils/test_perturbations.py capture d050_on_r1 --duree 30` |
-| Analyser les mesures | `python3 outils/test_perturbations.py analyse` |
-| Vérifier que tout marche | `./outils/tests.sh </dev/null` |
+| Enregistrer des mesures pour le test des perturbations du robot | `python3 scripts/perturbations.py capture d050_on_r1 --duree 30` |
+| Analyser les mesures | `python3 scripts/perturbations.py analyse` |
+| Vérifier que tout marche | `./scripts/verifier.sh </dev/null` |
 
----
-
-## 8. Petit lexique
-
-| Mot | Sens |
-|---|---|
-| **Compiler** | Traduire ton code (texte que toi tu lis) en langage machine (nombres que le Pico lit) |
-| **Langage machine** | Le seul langage que le processeur comprend : une suite de nombres = instructions très simples |
-| **`.uf2`** | Le langage machine mis dans un format qu'on peut glisser sur le Pico, comme sur une clé USB |
-| **`.elf`** | Le même programme + des infos pour chercher les bugs. On ne l'envoie pas sur le Pico |
-| **BOOTSEL** | Bouton qui fait apparaître le Pico comme une clé USB, pour y déposer un `.uf2` |
-| **Flash** | Mémoire du Pico qui garde le programme même débranché |
-| **Bauds** | Vitesse du port série (115200). Doit être la même des deux côtés |
-| **I2C** | Façon de discuter à deux fils : bleu (SDA, les données) et jaune (SCL, le rythme) |
-| **Registre** | Petite case mémoire du capteur. On y écrit des réglages, on y lit les mesures |
-| **WHO_AM_I** | Registre qui contient toujours `0x6C` : sert à vérifier que c'est bien notre capteur |
-| **CSV** | Texte en colonnes séparées par des virgules, lisible par Excel ou Python |
-| **g** | Unité d'accélération : 1 g = la gravité terrestre |
-| **Test** | Petit programme qui vérifie automatiquement un morceau du code |
-| **Faux capteur (mock)** | Imitation du capteur, utilisée par les tests à la place du vrai |
+Vocabulaire : [index](../index.md).

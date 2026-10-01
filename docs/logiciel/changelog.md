@@ -9,13 +9,13 @@ ajouté, ce qui a été corrigé, et pourquoi. Il est complété à chaque modif
 
 ```mermaid
 flowchart LR
-    LED["💡 LED"]:::fait
-    CAP["📐 Capteur<br/>LSM6DSOX"]:::fait
-    USB["💻 Envoi USB<br/>(CSV)"]:::fait
-    RTC["🕐 Horloge RTC"]:::avenir
-    SD["💾 Carte SD"]:::avenir
-    BUZ["📳 Moteur vibrant"]:::avenir
-    MET["🧮 Calcul<br/>score MET"]:::avenir
+    LED["LED"]:::fait
+    CAP["Capteur<br/>LSM6DSOX"]:::fait
+    USB["Envoi USB<br/>(CSV)"]:::fait
+    RTC["Horloge RTC"]:::avenir
+    SD["Carte SD"]:::avenir
+    BUZ["Moteur vibrant"]:::avenir
+    MET["Calcul<br/>score MET"]:::avenir
 
     CAP --> USB
     CAP -.-> MET
@@ -27,19 +27,19 @@ flowchart LR
     classDef avenir fill:#eeeeee,stroke:#9e9e9e,color:#555,stroke-dasharray: 5 5
 ```
 
-🟩 = fonctionne  ⬜ = à venir
+Vert = fonctionne, gris = à venir
 
 | Module | Dossier | État |
 |---|---|---|
-| LED | `src/signalisation/` | ✅ fait |
-| Bus I2C (fils bleu/jaune) | `src/bus/` | ✅ fait |
-| Capteur LSM6DSOX | `src/capteur/` | ✅ validé sur la carte, ⚠️ header à souder avant le robot |
-| Envoi des mesures à l'ordinateur | `src/communication/` | ✅ fait |
-| Boucle de mesure | `src/acquisition/` | ✅ fait |
-| Horloge RTC (date et heure réelles) | — | ⬜ à venir |
-| Carte SD (enregistrer sans ordinateur) | — | ⬜ à venir |
-| Moteur vibrant (alerter si trop sédentaire) | — | ⬜ à venir |
-| Calcul du score MET | — | ⬜ à venir |
+| LED | `src/signalisation/` | fait |
+| Bus I2C (fils bleu/jaune) | `src/bus/` | fait |
+| Capteur LSM6DSOX | `src/capteur/` | validé sur la carte, header à souder avant le robot |
+| Envoi des mesures à l'ordinateur | `src/communication/` | fait |
+| Boucle de mesure | `src/acquisition/` | fait |
+| Horloge RTC (date et heure réelles) | — | à venir |
+| Carte SD (enregistrer sans ordinateur) | — | à venir |
+| Moteur vibrant (alerter si trop sédentaire) | — | à venir |
+| Calcul du score MET | — | à venir |
 
 ---
 
@@ -56,6 +56,8 @@ timeline
                    : diagnostic du câblage
     V4 - Réorganisation : code rangé en modules
                         : tests automatiques
+    V5 - Rangement du dépôt : build en modules
+                            : capteur interchangeable
 ```
 
 ### V1 — Prise en main · 2026-10-01
@@ -89,7 +91,7 @@ timeline
 **But** : un code rangé, facile à faire grandir.
 **Ce qui change** : rien pour le Pico (même comportement). Le code est découpé en modules
 (un dossier par rôle) et des **tests vérifient tout automatiquement** à chaque modification.
-Détails dans [ARCHITECTURE.md](ARCHITECTURE.md).
+Détails dans [architecture.md](architecture.md).
 
 **Vérifié sur la carte** : le capteur répond et la gravité change bien d'axe quand on le tourne.
 
@@ -104,6 +106,17 @@ sans effet sur le test des perturbations du robot. À corriger par étalonnage a
 | Problème | Correction |
 |---|---|
 | Le Pico a chauffé, capteur éteint | Deux fils dans la même ligne de 5 trous de la breadboard → court-circuit. Un fil par ligne. |
+
+### V5 — Rangement du dépôt · 2026-10-01
+**But** : un dépôt propre, facile à reprendre.
+**Ce qui change** : rien pour le Pico (même comportement, même taille de programme à 8 octets près).
+
+| Avant | Après |
+|---|---|
+| Fichiers `.c` listés à la main, en double dans les 2 programmes | Une bibliothèque par dossier de `src/` (`src/CMakeLists.txt`) |
+| `acquisition` ne marchait qu'avec le LSM6DSOX | Elle accepte n'importe quel capteur de mouvement |
+| Tests dans `tests/`, scripts dans `outils/` | Tests dans `src/<dossier>/tests/`, scripts dans `scripts/` |
+| Vérification écrite 2 fois (Mac et GitHub) | Un seul script, `scripts/verifier.sh`, utilisé par les deux |
 
 ---
 
