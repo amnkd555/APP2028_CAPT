@@ -1,0 +1,29 @@
+# Compte rendu n°1 – Prise en main du Raspberry Pi Pico
+
+## Introduction
+
+Ce compte rendu présente la première étape de la partie électronique du projet : la mise en route du microcontrôleur Raspberry Pi Pico. L'objectif était de vérifier que la carte fonctionne et que nous savons y charger un programme écrit en langage C, avant d'y brancher le capteur de mouvement.
+
+## Déroulé
+
+Dans un premier temps, nous avons installé sur l'ordinateur les outils nécessaires pour programmer le Pico en C : le kit de développement officiel (SDK Raspberry Pi Pico) et le compilateur, qui traduit notre code en un langage que le processeur du Pico comprend. Le résultat de cette traduction est un fichier au format `.uf2`.
+
+Nous avons ensuite écrit un premier programme volontairement simple : la LED intégrée à la carte doit clignoter une fois par seconde, et un message doit s'afficher chaque seconde sur l'ordinateur grâce au câble USB. Pour charger ce programme, on maintient le bouton BOOTSEL du Pico en le branchant : il apparaît alors comme une clé USB, sur laquelle on dépose le fichier `.uf2`. Le Pico redémarre aussitôt et exécute le programme.
+
+[📷 Photo : le Pico branché à l'ordinateur]
+
+Lors du premier essai, la LED ne clignotait pas, alors que le programme semblait bien chargé. En observant la carte de plus près, nous avons constaté qu'il s'agissait d'un **Raspberry Pi Pico 2 W**, la version équipée d'une puce Wi-Fi. Sur ce modèle, la LED n'est pas reliée directement au processeur, mais commandée par la puce Wi-Fi. Nous avons donc adapté le programme à cette carte, après quoi la LED s'est mise à clignoter.
+
+[📷 Photo : l'inscription « Pico 2 W » sur la carte]
+
+Un second problème est apparu : le message de démarrage du programme ne s'affichait jamais à l'écran. Il était en réalité envoyé avant que le logiciel de l'ordinateur (le moniteur série) soit prêt à le recevoir, et donc perdu. Nous avons modifié le programme pour qu'il renvoie ce message à chaque fois que le moniteur série est ouvert.
+
+## Résultats
+
+Le programme final fonctionne comme prévu : la LED clignote une fois par seconde et l'ordinateur affiche le message de démarrage, puis une ligne par seconde indiquant l'état de la LED.
+
+[📷 Capture d'écran : les messages dans le moniteur série]
+
+## Conclusion
+
+Cette première étape a permis de valider toute la chaîne de travail : écrire un programme en C, le compiler, le charger sur la carte et lire ce qu'il renvoie. Elle nous a aussi permis d'identifier précisément notre carte, un Pico 2 W, ce dont il faudra tenir compte pour la suite. Le Pico étant opérationnel, l'étape suivante consiste à y brancher le capteur LSM6DSOX.

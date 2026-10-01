@@ -1,0 +1,413 @@
+<html><head><meta charset="utf-8"></head><body><h1>Dispositif de Mesure de la Sédentarité</h1>
+<h2>1. Contexte</h2>
+<p>Ce projet consiste en la conception d'un dispositif électronique capable de mesurer et d'analyser le niveau d'activité physique d'un individu afin de détecter les phases de sédentarité. Le système s'appuie sur un accéléromètre et un gyroscope pour capturer les mouvements en trois dimensions.</p>
+<h2>2. Choix du capteur</h2>
+<table>
+<thead>
+<tr>
+<th>Critère d'analyse</th>
+<th>Solution Basique (ADXL335 + ENC-03RC)</th>
+<th>Solution Avancée (LSM6DSOX)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Architecture</strong></td>
+<td>Composants séparés (Accéléromètre + Gyromètre distincts)</td>
+<td>Centrale inertielle unifiée (6 axes : Accéléro + Gyro)</td>
+</tr>
+<tr>
+<td><strong>Signal de sortie</strong></td>
+<td>Analogique (Tension brute nécessitant un ADC)</td>
+<td>Numérique (Bus I2C/SPI)</td>
+</tr>
+<tr>
+<td><strong>Capteur de température</strong></td>
+<td>Absent (Sensible à la dérive thermique)</td>
+<td>Intégré (permet de corriger la dérive thermique dans le programme)</td>
+</tr>
+<tr>
+<td><strong>Consommation énergétique</strong></td>
+<td>Pas de mode veille intelligent (Système toujours actif)</td>
+<td>Très faible (modes basse consommation, optimisé pour les appareils portables)</td>
+</tr>
+<tr>
+<td><strong>Traitement embarqué</strong></td>
+<td>Aucun traitement matériel intégré</td>
+<td>Intégration d'un "Machine Learning Core" (MLC)</td>
+</tr>
+</tbody>
+</table>
+<h2>3. Architecture Matérielle</h2>
+<table>
+<thead>
+<tr>
+<th>Composant</th>
+<th>Fonction / Rôle</th>
+<th>Remarques / Utilité technique</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Raspberry Pi Pico 2 W</strong></td>
+<td>Microcontrôleur principal</td>
+<td>Alimente les capteurs, récupère les mesures, exécute le programme d'analyse et gère le transfert/stockage. Puce RP2350 avec module Wi-Fi.</td>
+</tr>
+<tr>
+<td><strong>PiCowbell Adalogger</strong></td>
+<td>Carte d'extension</td>
+<td>Ajoute un lecteur de carte micro-SD pour le stockage et une horloge RTC (PCF8523) pour l'horodatage des mesures.</td>
+</tr>
+<tr>
+<td><strong>LSM6DSOX</strong></td>
+<td>Capteur de mouvement (centrale inertielle 6 axes)</td>
+<td>Accéléromètre + Gyroscope. Mesure les accélérations et rotations. Communique en I²C avec le Pico. Pour les tests, il est monté sur un module Adafruit qui intègre régulateur et résistances de tirage.</td>
+</tr>
+<tr>
+<td><strong>Pile bouton CR1220</strong></td>
+<td>Alimentation de l'horloge interne (RTC)</td>
+<td>Maintient la date et l'heure exactes en mémoire, même lorsque le dispositif principal est éteint.</td>
+</tr>
+<tr>
+<td><strong>Câble STEMMA QT/QWIIC</strong></td>
+<td>Connectique rapide (4 fils)</td>
+<td>Transporte l'alimentation (VCC, GND) et les données (SDA, SCL) du bus I²C. Relie le module capteur à la PiCowbell ; ne se branche pas directement sur les broches du Pico.</td>
+</tr>
+<tr>
+<td><strong>Headers femelles</strong></td>
+<td>Connecteurs mécaniques/électriques</td>
+<td>Servent à emboîter solidement le Pico sur la carte d'extension PiCowbell.</td>
+</tr>
+<tr>
+<td><strong>Câble USB</strong></td>
+<td>Communication PC et alimentation</td>
+<td>Utilisé pour le développement, l'affichage en temps réel sur le moniteur série et l'alimentation lors des tests sur le robot.</td>
+</tr>
+<tr>
+<td><strong>Alimentation autonome</strong></td>
+<td>Piles AA ou Batterie LiPo</td>
+<td>(Évolution future) Source d'énergie principale pour remplacer le câble USB et rendre le capteur portable.</td>
+</tr>
+</tbody>
+</table>
+<h2>4. Schéma de Connexion</h2>
+<p>La communication entre le Raspberry Pi Pico 2 W et le capteur LSM6DSOX utilise le protocole I2C, sur le port I2C0. Deux configurations sont prévues : une configuration de test avec le module Adafruit, utilisée pour les essais sur le robot UR3, et une configuration finale avec le capteur seul, soudé sur notre propre carte électronique.</p>
+<h3>4.1 Configuration de test sur le robot UR3 (module Adafruit LSM6DSOX)</h3>
+<p>Le module Adafruit intègre déjà les composants nécessaires au capteur (condensateurs, résistances de tirage, régulateur). Seuls quatre fils sont à brancher.</p>
+<table>
+<thead>
+<tr>
+<th>Broche Capteur</th>
+<th>Connexion Raspberry Pi Pico 2 W</th>
+<th>Rôle de la broche</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>VIN</td>
+<td>3V3 (broche 36)</td>
+<td>Alimentation électrique du capteur.</td>
+</tr>
+<tr>
+<td>GND</td>
+<td>GND (broche 38)</td>
+<td>Masse commune.</td>
+</tr>
+<tr>
+<td>SCL</td>
+<td>GP5 (broche 7) – I2C0 SCL</td>
+<td>L'horloge commune pour synchroniser les données.</td>
+</tr>
+<tr>
+<td>SDA</td>
+<td>GP4 (broche 6) – I2C0 SDA</td>
+<td>La ligne de transfert des données.</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Broches du module non connectées</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3Vo, DO, CS, I1, I2</td>
+<td>Inutiles pour une liaison I2C simple (réglages déjà faits sur le module). Laisser DO libre conserve l'adresse 0x6A.</td>
+</tr>
+<tr>
+<td>SCX, SDX</td>
+<td>Bus auxiliaire pour un capteur supplémentaire, non utilisé.</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Consigne</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Souder le header du module</td>
+<td>Un header simplement enfiché provoque des pertes de contact (vibrations du robot).</td>
+</tr>
+<tr>
+<td>Sur la breadboard, un seul fil par ligne de 5 trous</td>
+<td>Les trous d'une même ligne sont reliés : deux fils dans la même ligne créent un court-circuit.</td>
+</tr>
+<tr>
+<td>Fixer le capteur sur des entretoises non métalliques</td>
+<td>Le métal modifierait les perturbations mesurées.</td>
+</tr>
+<tr>
+<td>Garder le même trajet du câble USB à chaque essai</td>
+<td>Le câble capte lui aussi les perturbations du robot.</td>
+</tr>
+</tbody>
+</table>
+<h3>4.2 Configuration finale (capteur LSM6DSOX seul sur la carte électronique)</h3>
+<p>Sur la carte finale, le capteur est soudé directement, sans le module Adafruit. Les composants que le module contenait doivent donc être ajoutés.</p>
+<table>
+<thead>
+<tr>
+<th>Broche Capteur (n°)</th>
+<th>Connexion Pico / Circuit</th>
+<th>Rôle &amp; Instructions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>VDD (8)</td>
+<td>3V3 (Pico)</td>
+<td>Alimentation principale. Ajouter C1 (100 nF) à la masse.</td>
+</tr>
+<tr>
+<td>VDDIO (5)</td>
+<td>3V3 (Pico)</td>
+<td>Alimentation des entrées/sorties. Ajouter C2 (100 nF) à la masse.</td>
+</tr>
+<tr>
+<td>GND (6, 7)</td>
+<td>GND (Pico)</td>
+<td>Masse commune du système.</td>
+</tr>
+<tr>
+<td>SDA (14)</td>
+<td>GP4 (I2C0 SDA)</td>
+<td>Données I2C. Ajouter une résistance de tirage de 10 kΩ au 3V3.</td>
+</tr>
+<tr>
+<td>SCL (13)</td>
+<td>GP5 (I2C0 SCL)</td>
+<td>Horloge I2C. Ajouter une résistance de tirage de 10 kΩ au 3V3.</td>
+</tr>
+<tr>
+<td>CS (12)</td>
+<td>3V3</td>
+<td>Sélectionne le mode I2C (à la masse, le capteur passe en mode SPI).</td>
+</tr>
+<tr>
+<td>SDO/SA0 (1)</td>
+<td>GND</td>
+<td>Fixe l'adresse I2C à 0x6A.</td>
+</tr>
+<tr>
+<td>INT1 (4)</td>
+<td>GP2</td>
+<td>Interruption de réveil : sort le Pico de veille profonde.</td>
+</tr>
+<tr>
+<td>SDx (2)</td>
+<td>GND</td>
+<td>Inutilisé. Relier à la masse.</td>
+</tr>
+<tr>
+<td>SCx (3)</td>
+<td>GND</td>
+<td>Inutilisé. Relier à la masse.</td>
+</tr>
+<tr>
+<td>INT2 (9)</td>
+<td>NC (isolé)</td>
+<td>Inutilisé. Ne pas connecter.</td>
+</tr>
+<tr>
+<td>OCS_Aux (10)</td>
+<td>NC (isolé)</td>
+<td>Inutilisé. Ne pas connecter.</td>
+</tr>
+<tr>
+<td>SDO_Aux (11)</td>
+<td>NC (isolé)</td>
+<td>Inutilisé. Ne pas connecter.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Composants passifs indispensables :</strong></p>
+<table>
+<thead>
+<tr>
+<th>Composant</th>
+<th>Valeur</th>
+<th>Emplacement</th>
+<th>Utilité</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C1</td>
+<td>100 nF</td>
+<td>Entre VDD (8) et GND</td>
+<td>Filtrage de l'alimentation du capteur.</td>
+</tr>
+<tr>
+<td>C2</td>
+<td>100 nF</td>
+<td>Entre VDDIO (5) et GND</td>
+<td>Filtrage de l'alimentation des entrées/sorties.</td>
+</tr>
+<tr>
+<td>R_pu1</td>
+<td>10 kΩ</td>
+<td>Entre SDA (14) et 3V3</td>
+<td>Résistance de tirage (pull-up) I2C.</td>
+</tr>
+<tr>
+<td>R_pu2</td>
+<td>10 kΩ</td>
+<td>Entre SCL (13) et 3V3</td>
+<td>Résistance de tirage (pull-up) I2C.</td>
+</tr>
+</tbody>
+</table>
+<p>Les condensateurs doivent être placés au plus près des broches du capteur. Une seule paire de résistances de tirage suffit pour tout le bus I2C, même lorsque d'autres modules y seront ajoutés.</p>
+<h3>4.3 Modules à ajouter sur la carte finale</h3>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>Liaison prévue</th>
+<th>Broches Pico</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Capteur LSM6DSOX</td>
+<td>I2C0 (adresse 0x6A)</td>
+<td>GP4, GP5, GP2 (INT1)</td>
+</tr>
+<tr>
+<td>Horloge RTC (PCF8523, PiCowbell Adalogger)</td>
+<td>I2C0, même bus que le capteur (adresse 0x68)</td>
+<td>GP4, GP5</td>
+</tr>
+<tr>
+<td>Carte micro-SD (PiCowbell Adalogger)</td>
+<td>SPI</td>
+<td>GP16 (MISO), GP17 (CS), GP18 (SCK), GP19 (MOSI)</td>
+</tr>
+<tr>
+<td>Moteur vibrant</td>
+<td>Sortie numérique</td>
+<td>À définir</td>
+</tr>
+<tr>
+<td>Batterie</td>
+<td>Alimentation</td>
+<td>À définir</td>
+</tr>
+</tbody>
+</table>
+<p>Le capteur (0x6A) et l'horloge (0x68) ont des adresses différentes : ils peuvent partager le même bus I2C sans conflit.</p>
+<h3>4.4 Comparaison des deux configurations</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Test sur robot (module Adafruit)</th>
+<th>Carte finale (capteur seul)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Nombre de connexions</td>
+<td>4 fils</td>
+<td>11 broches à relier</td>
+</tr>
+<tr>
+<td>Condensateurs</td>
+<td>Intégrés au module</td>
+<td>À ajouter (C1, C2)</td>
+</tr>
+<tr>
+<td>Résistances de tirage</td>
+<td>Intégrées au module</td>
+<td>À ajouter (R_pu1, R_pu2)</td>
+</tr>
+<tr>
+<td>Adresse 0x6A</td>
+<td>Réglée sur le module</td>
+<td>SDO/SA0 relié à la masse</td>
+</tr>
+<tr>
+<td>Mode I2C</td>
+<td>Réglé sur le module</td>
+<td>CS relié au 3V3</td>
+</tr>
+<tr>
+<td>Programme du Pico</td>
+<td>Identique</td>
+<td>Identique</td>
+</tr>
+</tbody>
+</table>
+<h2>5. Configuration du Prototype et Phase de Test</h2>
+<h3>5.1 Le calcul de la sédentarité (Le score MET)</h3>
+<p>Pour transformer les mouvements captés en une donnée de santé, le programme calcule l'intensité des mouvements. D'abord, il combine les accélérations des 3 axes (X, Y, Z) pour obtenir l'intensité globale. Ensuite, il convertit ces mouvements en points d'activité ("Counts") sur une durée d'une minute. Enfin, un calcul mathématique transforme ces points en un score MET. Si ce score est inférieur ou égal à 1,5 MET, le système sait que la personne est en situation de sédentarité.</p>
+<h3>5.2 L'intelligence intégrée du capteur</h3>
+<p>Le capteur LSM6DSOX possède une petite intelligence intégrée (le Machine Learning Core). Au lieu d'envoyer toutes les données en permanence, il est capable de reconnaître tout seul si la personne marche ou si elle est assise. L'avantage principal est d'économiser la batterie : le "cerveau" principal (le Raspberry Pi Pico) peut se mettre en veille. Le capteur ne le réveille que lorsqu'il détecte un changement d'activité ; le Pico mesure alors le temps passé assis et déclenche l'alerte si ce temps est trop long.</p>
+<h3>5.3 Calibration via Bras Robotisé (UR3)</h3>
+<p>Pour garantir la répétabilité des mesures, les premiers tests sont effectués en fixant le capteur sur un bras robotisé Universal Robots UR3.</p>
+<p>Le premier test consiste à déterminer la distance minimale entre le capteur et les moteurs du robot (test des perturbations électromagnétiques). Les mesures sont comparées robot hors tension puis sous tension, à différentes distances ; la distance à partir de laquelle les mesures ne sont plus perturbées sert à dimensionner la pièce support modélisée sur SolidWorks.</p>
+<p>L'objectif est ensuite de simuler des séquences de mouvements contrôlées afin de définir les seuils numériques séparant l'activité de l'immobilité.</p>
+<h3>5.4 Configuration "Développement"</h3>
+<p>Dans cette phase initiale, le dispositif est relié par câble USB à un ordinateur. Cette configuration simplifiée permet :</p>
+<ul>
+<li>L'alimentation directe du Pico et du capteur.</li>
+<li>L'affichage des données en temps réel via le moniteur série.</li>
+<li>Le stockage des données sur le disque dur du PC (rendant la carte SD optionnelle temporairement).</li>
+</ul>
+<h2>6. Choix du langage de programmation</h2>
+<p>Nous avons choisi le langage C car :</p>
+<p><strong>il maximise l'efficacité énergétique par sa vitesse d'exécution.</strong> Le C est un langage compilé, contrairement à des langages interprétés comme Python. Dans notre architecture, le Raspberry Pi Pico est réveillé par la broche INT1 du capteur, traite l'alerte, puis se rendort. En C, l'exécution de cette routine prend à peine quelques microsecondes. Plus le code s'exécute vite, plus vite le processeur retourne en sommeil profond, ce qui est vital pour l'autonomie de notre batterie.</p>
+<p><strong>il permet un contrôle "bas niveau" et déterministe du matériel.</strong> Le SDK C/C++ du Raspberry Pi Pico offre un accès direct aux registres physiques du microcontrôleur. C'est indispensable pour configurer finement les modes de veille et pour gérer l'interruption matérielle sans latence. Avec le C, on maîtrise exactement ce que fait le processeur à chaque cycle d'horloge.</p>
+<p><strong>c'est le standard industriel des systèmes embarqués critiques.</strong> Pour un dispositif aux ambitions médicales et portables, le C reste la norme dans l'industrie.</p>
+<h2>7. Évolutions et Pistes de Conception</h2>
+<p>Le projet est conçu pour évoluer vers un produit fini portable. Voici les points matériels et ergonomiques à traiter lors des prochains semestres :</p>
+<h3>7.1 Évolution de l'Autonomie et du Stockage</h3>
+<ul>
+<li>Remplacer l'alimentation par câble USB par une batterie rechargeable, afin de rendre le dispositif totalement portable.</li>
+<li>Optimiser l'utilisation de la carte MicroSD pour pouvoir enregistrer les données de mouvement sur plusieurs jours consécutifs sans nécessiter de connexion à un ordinateur.</li>
+</ul>
+<h3>7.2 Ergonomie et Interaction avec l'Utilisateur</h3>
+<p>Pour répondre au défi d'un port confortable (au poignet ou à la ceinture), nous allons dessiner une coque de protection sur-mesure sur le logiciel SOLIDWORKS. Le but est d'obtenir un boîtier très fin pour éviter de gêner l'utilisateur. À l'intérieur, les cartes électroniques devront être parfaitement calées pour éviter les vibrations. Il faudra également y prévoir la place pour la future batterie et laisser des accès libres pour le port USB et la carte mémoire.</p>
+<p>Le but final du projet est d'inciter la personne à bouger. Si l'utilisateur reste assis sans interruption (par exemple pendant 30 minutes), l'appareil devra le prévenir. Pour que cette notification reste discrète (utile au bureau ou en classe), nous prévoyons d'ajouter un retour haptique via un petit moteur de vibration plat (similaire à celui des téléphones), ce qui est bien plus adapté qu'une alarme sonore ou une LED lumineuse.</p>
+<h2>8. Annexe</h2>
+<h3>8.1 Datasheets</h3>
+<ul>
+<li>LSM6DSOX (STMicroelectronics) : https://www.st.com/resource/en/datasheet/lsm6dsox.pdf</li>
+<li>Raspberry Pi Pico 2 W : https://datasheets.raspberrypi.com/picow/pico-2-w-datasheet.pdf</li>
+</ul>
+<h3>8.2 Guides d'utilisation (Adafruit)</h3>
+<ul>
+<li>Module Adafruit LSM6DSOX : https://cdn-learn.adafruit.com/downloads/pdf/lsm6dsox-and-ism330dhc-6-dof-imu.pdf</li>
+<li>PiCowbell Adalogger : https://cdn-learn.adafruit.com/downloads/pdf/adafruit-picowbell-adalogger-for-pico.pdf</li>
+</ul>
+<h3>8.3 Manuel de référence (pour aller plus loin)</h3>
+<ul>
+<li>Microcontrôleur RP2350 (puce du Pico 2 W) : https://datasheets.raspberrypi.com/rp2350/rp2350-datasheet.pdf</li>
+</ul></body></html>
