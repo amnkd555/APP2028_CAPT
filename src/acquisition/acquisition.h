@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 #include "bus/bus_i2c.h"
-#include "capteur/capteur_mouvement_lsm6dsox.h"
+#include "capteur/capteur_mouvement.h"
 #include "communication/communication_moniteur_csv.h"
 #include "signalisation/signalisation_led.h"
 
@@ -15,7 +15,8 @@
 
 typedef struct {
     const bus_i2c_t *bus;
-    capteur_mouvement_lsm6dsox_t *capteur;
+    uint8_t adresse_capteur;       // adresse I2C du capteur, pour le diagnostic du câblage
+    capteur_mouvement_t *capteur;  // n'importe quel capteur de mouvement (LSM6DSOX ou autre)
     signalisation_led_t *led;
     communication_moniteur_csv_t *sortie;
     uint32_t echecs_consecutifs;   // remis à 0 à chaque lecture réussie

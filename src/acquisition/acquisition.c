@@ -4,9 +4,9 @@
 #include "bus/bus_i2c_diagnostic.h"
 #include "pico/stdlib.h"
 
-// Raccourci vers la classe parent capteur_t (deux niveaux d'héritage plus haut)
+// Raccourci vers la classe parent capteur_t
 static capteur_t *capteur_de(acquisition_t *self) {
-    return &self->capteur->parent.parent;
+    return &self->capteur->parent;
 }
 
 // Réessaie l'initialisation tant que le capteur ne répond pas ; LED fixe une fois prêt
@@ -15,7 +15,7 @@ static void preparer_capteur(acquisition_t *self) {
         // 5 clignotements rapides = capteur non détecté
         signalisation_led_clignoter(self->led, 5, 100);
         bus_i2c_debloquer(self->bus);
-        bus_i2c_diagnostic_afficher(self->bus, self->capteur->adresse);
+        bus_i2c_diagnostic_afficher(self->bus, self->adresse_capteur);
     }
     self->capteur_pret = true;
     self->echecs_consecutifs = 0;
@@ -47,7 +47,7 @@ void acquisition_executer_cycle(acquisition_t *self) {
         case CAPTEUR_LECTURE_OK:
             self->echecs_consecutifs = 0;
             communication_moniteur_csv_envoyer_mesure(self->sortie, to_ms_since_boot(get_absolute_time()),
-                                                      &self->capteur->parent);
+                                                      self->capteur);
             break;
         case CAPTEUR_LECTURE_PAS_PRETE:
             // Courte pause pour ne pas saturer le bus (une mesure toutes les 9,6 ms)
